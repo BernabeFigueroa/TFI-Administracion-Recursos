@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="RTL (Reserva Tu Lugar) MVP - Reserva de canchas de fútbol, pádel y básquetbol con diseño neumórfico moderno y confirmación en tiempo real.">
+  <title>RTL - Reserva Tu Lugar</title>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=1.2">
+</head>
+
+<body>
+
+  <div class="app-container">
+    <!-- Header Area -->
+    <header>
+      <div class="header-top">
+        <div class="logo-section">
+          <div class="logo-image-wrapper"
+            style="width: 90px; height: 90px; min-width: 90px; min-height: 90px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+            <img class="logo-image" src="assets/logo.png" alt="RTL Logo"
+              style="width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; display: block;">
+          </div>
+        </div>
+
+        <!-- Navigation Tab Switcher -->
+        <nav class="nav-tabs" aria-label="Navegación principal">
+          <button id="tab-find-btn" class="tab-btn active" aria-controls="view-find" aria-selected="true">
+            <i class="fa-solid fa-magnifying-glass"></i> Buscar Canchas
+          </button>
+          <button id="tab-bookings-btn" class="tab-btn" aria-controls="view-bookings" aria-selected="false">
+            <i class="fa-solid fa-calendar-check"></i> Mis Reservas
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <!-- View 1: Explore and Book Courts -->
+      <section id="view-find" class="view-container active" aria-labelledby="tab-find-btn">
+        <!-- Search and Filters Section -->
+        <div class="search-filter-section">
+          <div class="filters-row">
+            <!-- Search input -->
+            <div class="search-wrapper">
+              <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+              <input type="text" id="search-input" class="search-input"
+                placeholder="Buscar cancha, servicios o locación..." aria-label="Búsqueda de canchas">
+            </div>
+
+            <!-- Location select -->
+            <div class="select-wrapper">
+              <select id="location-select" class="location-select" aria-label="Filtrar por localidad">
+                <option value="all">Todas las zonas</option>
+                <option value="San Miguel de Tucumán">San Miguel de Tucumán</option>
+                <option value="Yerba Buena">Yerba Buena</option>
+                <option value="Tafí Viejo">Tafí Viejo</option>
+                <option value="Lules">Lules</option>
+                <option value="Concepción">Concepción</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Sport Categories Pills -->
+          <div class="sport-categories" id="sport-categories" role="group" aria-label="Filtrar por deporte">
+            <button class="category-pill active" data-sport="all">
+              <span></span> Todos
+            </button>
+            <button class="category-pill" data-sport="futbol">
+              <span></span> <i class="fa-solid fa-soccer-ball"></i> Fútbol
+            </button>
+            <button class="category-pill" data-sport="padel">
+              <span></span> <i class="fa-solid fa-table-tennis-paddle-ball"></i> Pádel
+            </button>
+            <button class="category-pill" data-sport="basquet">
+              <span></span> <i class="fa-solid fa-basketball"></i> Básquetbol
+            </button>
+          </div>
+        </div>
+
+        <!-- Court Grid -->
+        <div class="courts-grid" id="courts-grid">
+          <!-- Rendered dynamically via app.js -->
+        </div>
+      </section>
+
+      <!-- View 2: User Bookings -->
+      <section id="view-bookings" class="view-container" aria-labelledby="tab-bookings-btn">
+        <h2 style="font-weight: 800; font-size: 1.5rem; margin-bottom: 0.5rem;">Mis Turnos Reservados</h2>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Aquí puedes consultar el
+          estado y los detalles de tus reservas realizadas.</p>
+
+        <!-- Empty bookings state -->
+        <div id="no-bookings-view" class="no-bookings">
+          <div class="no-bookings-icon" aria-hidden="true">
+            <i class="fa-solid fa-calendar-xmark"></i>
+          </div>
+          <h3>Aún no tienes reservas</h3>
+          <p>Encuentra tu cancha favorita, selecciona el horario que mejor te convenga y haz tu reserva de forma simple.
+          </p>
+          <button class="go-book-btn" id="find-courts-empty-btn" onclick="goToFind()">Buscar Canchas Ahora</button>
+        </div>
+
+        <!-- Bookings list -->
+        <div id="bookings-list" class="bookings-list" style="display: none;">
+          <!-- Rendered dynamically via app.js -->
+        </div>
+      </section>
+    </main>
+
+    <!-- Modals Layer -->
+
+    <!-- 1. Booking Details & Scheduler Modal -->
+    <div id="booking-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-court-title">
+      <div class="modal-content">
+        <button id="close-booking-btn" class="close-modal-btn" aria-label="Cerrar modal de reserva">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="modal-header-info">
+          <span class="modal-sport" id="modal-court-sport">PÁDEL</span>
+          <h2 class="modal-title" id="modal-court-title">El Templo Pádel Glass</h2>
+        </div>
+
+        <form id="booking-form">
+          <!-- Section A: Date and Time -->
+          <h3 class="booking-section-title">
+            <i class="fa-solid fa-calendar-days"></i> 1. Selecciona Fecha y Horario
+          </h3>
+
+          <div class="custom-date-wrapper">
+            <input type="date" id="booking-date" class="neumorphic-input" required aria-label="Fecha del turno">
+          </div>
+
+          <div class="slots-grid" id="slots-container" role="radiogroup" aria-label="Horarios disponibles">
+            <!-- Rendered dynamically via app.js -->
+          </div>
+
+          <!-- Section B: Customer Details -->
+          <h3 class="booking-section-title">
+            <i class="fa-solid fa-user-pen"></i> 2. Datos de Contacto
+          </h3>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="client-name">Nombre Completo</label>
+              <input type="text" id="client-name" class="neumorphic-input" placeholder="Juan Pérez" required>
+            </div>
+            <div class="form-group">
+              <label for="client-phone">Teléfono / WhatsApp</label>
+              <input type="tel" id="client-phone" class="neumorphic-input" placeholder="11 2345 6789" required>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="client-email">Correo Electrónico</label>
+            <input type="email" id="client-email" class="neumorphic-input" placeholder="juan.perez@email.com" required>
+          </div>
+
+          <!-- Section C: Summary & Submit -->
+          <div class="summary-card">
+            <div class="summary-row">
+              <span>Alquiler por 1 hora</span>
+              <span id="summary-subtotal">$0</span>
+            </div>
+            <div class="summary-row">
+              <span>Impuestos y servicios de reserva</span>
+              <span>¡Bonificado!</span>
+            </div>
+            <div class="summary-row total">
+              <span>Total a pagar</span>
+              <span id="summary-total">$0</span>
+            </div>
+          </div>
+
+          <button type="submit" id="confirm-booking-btn" class="confirm-booking-btn" disabled>
+            <i class="fa-solid fa-check-double"></i> Confirmar Turno & Simular Pago
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 2. Success Booking confirmation Modal -->
+    <div id="success-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="success-title">
+      <div class="modal-content" style="max-width: 480px;">
+        <button id="close-success-btn" class="close-modal-btn" aria-label="Cerrar confirmación de reserva">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="success-checkmark-wrapper">
+          <div class="checkmark-circle">
+            <i class="fa-solid fa-check"></i>
+          </div>
+        </div>
+
+        <div class="success-details">
+          <h2 id="success-title" class="success-title">¡Reserva Exitosa!</h2>
+          <p class="success-subtitle">Tu cancha ha sido reservada. Presenta este comprobante en la recepción del
+            complejo.</p>
+
+          <!-- Ticket container -->
+          <div class="booking-ticket">
+            <div class="ticket-row">
+              <span class="ticket-lbl">Código:</span>
+              <span class="ticket-val code" id="ticket-code">RES-AA0000</span>
+            </div>
+            <div class="ticket-divider"></div>
+            <div class="ticket-row">
+              <span class="ticket-lbl">Cancha:</span>
+              <span class="ticket-val" id="ticket-court">-</span>
+            </div>
+            <div class="ticket-row">
+              <span class="ticket-lbl">Ubicación:</span>
+              <span class="ticket-val" id="ticket-location">-</span>
+            </div>
+            <div class="ticket-row">
+              <span class="ticket-lbl">Fecha:</span>
+              <span class="ticket-val" id="ticket-date">-</span>
+            </div>
+            <div class="ticket-row">
+              <span class="ticket-lbl">Horario:</span>
+              <span class="ticket-val" id="ticket-hour">- hs</span>
+            </div>
+            <div class="ticket-row">
+              <span class="ticket-lbl">Cliente:</span>
+              <span class="ticket-val" id="ticket-user">-</span>
+            </div>
+            <div class="ticket-divider"></div>
+            <div class="ticket-row">
+              <span class="ticket-lbl">Monto Pagado:</span>
+              <span class="ticket-val" id="ticket-price">$0</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="confirm-booking-btn"
+          onclick="document.getElementById('success-modal').classList.remove('open'); goToBookings();">
+          Ver Mis Reservas <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- JS Logic -->
+  <script src="app.js"></script>
+</body>
+
+</html>
