@@ -6,7 +6,6 @@ import Footer from './Footer.jsx';
 import BookingModal from './BookingModal.jsx';
 import ClubModal from './ClubModal.jsx';
 import '../styles/public.css';
-import './public-react.css';
 
 const sportNames = { all: 'Todos', futbol: 'Fútbol', padel: 'Pádel', basquet: 'Básquetbol' };
 function startingPrice(complex, courts) { const prices = courts.filter(c => c.complexId === complex.id && c.enabled).map(c => c.price); return prices.length ? Math.min(...prices) : complex.price; }

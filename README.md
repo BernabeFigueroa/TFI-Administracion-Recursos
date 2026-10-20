@@ -1,111 +1,167 @@
 # RTL — Reserva Tu Lugar
 
-Aplicación de reservas deportivas con frontend React y backend Node.js + SQLite. Una cuenta de administrador pertenece a un complejo, que contiene sus propias canchas físicas.
+Aplicación web para reservar canchas deportivas y administrar complejos. Incluye un panel para cada club y un panel exclusivo de RTL para gestionar las suscripciones al servicio.
 
-## Requisitos y ejecución
+Proyecto académico de Administración de Recursos — UTN, 2026.
 
-- Node.js 22.13 o superior. Se verificó con Node.js 22.20.0.
-- React, React DOM y Vite se instalan mediante npm. El módulo `node:sqlite` es experimental en Node.js 22 y muestra una advertencia al iniciar.
+## Tecnologías
 
-```powershell
+- **Frontend:** React y Vite.
+- **Backend:** Node.js, con su servidor HTTP integrado.
+- **Base de datos:** SQLite mediante `node:sqlite`.
+- **Autenticación:** sesiones en cookies HttpOnly y contraseñas protegidas con scrypt.
+
+## Instalación y ejecución
+
+Requiere **Node.js 22.13 o superior**, con npm. Se verificó con Node.js 22.20.0. En esta versión de Node, SQLite puede mostrar una advertencia de módulo experimental.
+
+```sh
+git clone https://github.com/BernabeFigueroa/TFI-Administracion-Recursos.git
+cd TFI-Administracion-Recursos
 npm install
 npm start
 ```
 
-Abrir `http://127.0.0.1:3000` y `http://127.0.0.1:3000/admin/`. En desarrollo, Vite se integra como middleware del mismo servidor Node: no hace falta iniciar otro proceso ni configurar CORS. El servidor sirve tanto React como `/api`; no se debe usar Live Server o el servidor de Python para trabajar con la base de datos.
+El servidor inicia en `http://127.0.0.1:3000`. Para detenerlo, presionar **Ctrl+C** en la terminal.
 
-La primera ejecución crea `data/rtl.sqlite`, nueve complejos y tres canchas de referencia en cada uno. Los reinicios conservan los cambios. La base de datos y los archivos de acceso bajo `data/` están excluidos de Git y no son accesibles por HTTP.
-
-## Crear administradores
-
-No hay contraseñas predeterminadas ni registro público de administradores. Ejecutar desde el directorio del proyecto:
-
-```powershell
-npm run admin:create -- padel-3 admin@madpadel.local
-```
-
-El comando genera una contraseña aleatoria y la muestra UNA vez. Guardarla para entrar al panel. Para definir una contraseña propia de al menos 12 caracteres se puede usar la variable `ADMIN_PASSWORD`; no incluir contraseñas en Git. Un correo no puede registrarse dos veces. El comando no modifica cuentas existentes.
-
-Identificadores de complejos: `soccer-1`, `soccer-2`, `soccer-3`, `padel-1`, `padel-2`, `padel-3` (MAD Pádel), `basketball-1`, `basketball-2`, `basketball-3`.
-
-## Administración de RTL
-
-`/superadmin/` es el panel exclusivo del equipo RTL. Sus cuentas y sesiones son independientes de las cuentas de los complejos. Para crear la primera cuenta, ejecutar con el correo del responsable:
-
-```powershell
-npm run superadmin:create -- responsable@tu-dominio.com
-```
-
-El comando muestra una contraseña aleatoria una sola vez; no modifica cuentas existentes. Desde el panel se pueden dar de alta complejos con sus canchas y primera cuenta, crear administradores adicionales, actualizar planes y contactos, registrar cobros y consultar solicitudes comerciales y actividad.
-
-Los complejos existentes reciben inicialmente Básico con 30 días de vigencia y abono configurable en cero. Sus reservas y cuentas se conservan. Pro ($50.000 de referencia) habilita reportes e inventario; Elite ($100.000) agrega auditoría. RTL puede ajustar el abono de cada suscripción. Estos módulos se validan en el servidor: ocultarlos o bloquearlos en el menú no es la protección de acceso.
-
-Una suscripción vencida pierde las funciones premium. La suspensión explícita además oculta el complejo del catálogo público y rechaza nuevas reservas, conservando historial y acceso administrativo. Registrar un cobro reactiva la suscripción hasta el vencimiento indicado. Los cobros son registros manuales, no operaciones de una pasarela de pagos.
-
-Los recordatorios se guardan como borradores y permiten abrir correo o WhatsApp con un mensaje preparado. Una persona debe revisarlo y enviarlo desde esa aplicación. No hay envíos automáticos ni integración con proveedores de mensajería.
-
-La API RTL usa `/api/superadmin/auth/*`, `/api/superadmin/complexes`, `/api/superadmin/accounts`, `/api/superadmin/complexes/:id/subscription`, `/payments`, `/reminders` y `/api/superadmin/audit`. Los módulos del club usan `/api/admin/subscription`, `/reports`, `/inventory` y `/audit`. Un acceso premium denegado devuelve 403 con `code: PLAN_REQUIRED`.
-
-## Permisos de reservas
-
-### Propósito de las pestañas
-
-En `/admin/`, Panel de control resume ocupación y tareas por revisar; Reservas contiene agenda, historial y exportación; Mis canchas configura cada espacio; Clientes reúne contactos e historial por titular; Pagos e ingresos filtra turnos pagados y por cobrar. Reportes compara los meses, Inventario administra existencias, Auditoría permite buscar movimientos y Mi suscripción muestra vigencia y herramientas habilitadas. Los cobros de los turnos se agrupan por fecha del turno, no por fecha de recepción del dinero.
-
-En `/superadmin/`, Complejos es el directorio de espacios y cuentas; Suscripciones concentra planes, vencimientos, renovación y borradores de recordatorios; Cobros registrados conserva comprobantes; Solicitudes de alta permite revisar interesados e iniciar su alta; Actividad muestra la trazabilidad por complejo y responsable. Las métricas y acciones se limitan a cada sección. Los historiales comerciales muestran los últimos 100 registros y la actividad global los últimos 150.
-
-- Complejo y cancha física tienen identificadores distintos: `courtId` identifica el complejo en el contrato existente de la interfaz y `resourceId` identifica la cancha física.
-- Cada administrador consulta y modifica únicamente su complejo. El servidor deriva la pertenencia desde la sesión; cambiar IDs en el navegador no concede acceso.
-- Las canchas permiten editar nombre, superficie, tipo, capacidad, precio, foto y habilitación. Deshabilitar una cancha impide nuevas reservas y conserva su historial.
-- Las reservas se validan contra el horario y tarifa guardados en el servidor. Una restricción en SQLite rechaza turnos superpuestos, incluso si llegan solicitudes simultáneas. Cada cancha tiene disponibilidad independiente.
-- Los clientes pueden reservar sin cuenta. Sus reservas se vinculan a una cookie privada de ese navegador durante 30 días. Borrar cookies o usar otro navegador impide recuperar ese listado. El administrador sigue conservando los registros. No es un sistema de cuentas de clientes.
-- Las sesiones de administrador duran ocho horas; las contraseñas usan scrypt con sal aleatoria y las cookies son HttpOnly y SameSite=Strict. La base de datos guarda hashes de tokens, no tokens de sesión en texto plano.
-- Las cookies de cliente y administrador son distintas: iniciar o cerrar sesión administrativa conserva las reservas personales del navegador.
-- La disponibilidad pública no expone nombres, contactos ni códigos de reservas ajenas. Los datos personales solo están disponibles al titular de la sesión de cliente y al administrador del complejo.
-- Los cambios se actualizan al enfocar la ventana y cada 15 segundos. No hay WebSockets. El servidor siempre valida disponibilidad al guardar.
-
-Los registros previos de `localStorage` no se importan automáticamente. Los navegadores nuevos usan la base de datos del servidor; el almacenamiento local anterior queda intacto.
-
-## API
-
-Las escrituras requieren `Content-Type: application/json`. Los errores devuelven `{ "error": "mensaje" }` con estado HTTP correspondiente.
-
-| Método | Ruta | Uso |
+| Ruta | Destinatario | Propósito |
 | --- | --- | --- |
-| GET | `/api/health` | Estado del servidor |
-| GET | `/api/catalog` | Complejos y sus canchas |
-| POST | `/api/auth/login` | Acceso con correo y contraseña |
-| GET | `/api/auth/me` | Administrador autenticado o `null` |
-| POST | `/api/auth/logout` | Invalidar sesión administrativa |
-| GET | `/api/availability?complexId=padel-3&date=2026-10-20` | Bloques ocupados sin datos personales |
-| GET | `/api/bookings/mine` | Crear sesión de cliente si es necesario y consultar sus reservas |
-| POST | `/api/bookings` | Reserva del cliente; requiere cookie obtenida en `mine` |
-| POST | `/api/bookings/:id/cancel` | Cancelar reserva propia o del complejo administrado |
-| GET | `/api/admin/bookings` | Reservas e historial del complejo autenticado |
-| POST | `/api/admin/bookings` | Crear reserva administrativa |
-| PATCH | `/api/admin/bookings/:id` | Confirmar o registrar/revertir un pago manual |
-| POST | `/api/admin/courts` | Agregar cancha al complejo autenticado |
-| PUT | `/api/admin/courts/:id` | Actualizar cancha del complejo autenticado |
-| POST | `/api/club-requests` | Guardar solicitud de alta de club |
+| `/` | Clientes | Buscar complejos, reservar y consultar sus reservas |
+| `/admin/` | Administradores de clubes | Gestionar únicamente su complejo y sus canchas |
+| `/superadmin/` | Equipo de RTL | Administrar complejos, cuentas y suscripciones |
 
-Crear reserva: `{ resourceId, date, slot, duration, userName, userPhone, userEmail }`. `duration` admite 60, 90 o 120 minutos; la fecha debe ser futura y estar dentro de los próximos 366 días. Los horarios se interpretan en Argentina, UTC−03:00. El servidor calcula el precio. Solo la ruta administrativa admite estado pendiente y registro manual de pago.
+El frontend y la API funcionan en el mismo servidor. Se debe usar `npm start`: abrir el HTML directamente o usar Live Server no permite trabajar con el backend.
+
+La primera ejecución crea `data/rtl.sqlite` con nueve complejos de referencia y tres canchas por complejo. Los reinicios conservan los cambios. **La base local y sus cuentas no se incluyen en Git:** cada instalación debe crear sus propios accesos.
+
+## Crear los accesos
+
+No hay usuarios ni contraseñas predeterminados. Desde la carpeta del proyecto, crear la primera cuenta del equipo RTL:
+
+```sh
+npm run superadmin:create -- responsable@ejemplo.com
+```
+
+El comando genera una contraseña aleatoria y la muestra una sola vez. Guardarla en un lugar seguro. No modifica una cuenta existente.
+
+Con ese acceso, ingresar a `/superadmin/` y usar **Nuevo complejo** para crear un club, sus canchas y su primera cuenta administradora. **Complejos → Crear cuenta** agrega otro administrador al mismo club.
+
+También se puede crear una cuenta para un complejo inicial desde la terminal:
+
+```sh
+npm run admin:create -- padel-3 administrador@ejemplo.com
+```
+
+`padel-3` corresponde a MAD Pádel Club. Otros identificadores iniciales: `soccer-1`, `soccer-2`, `soccer-3`, `padel-1`, `padel-2`, `basketball-1`, `basketball-2` y `basketball-3`.
+
+Ambos comandos admiten `ADMIN_PASSWORD` para definir una contraseña propia de entre 12 y 256 caracteres. No guardar contraseñas en el repositorio.
+
+## Funcionalidades
+
+### Clientes
+
+- Búsqueda por complejo, localidad y deporte.
+- Selección de cancha física, fecha y horario disponible.
+- Creación, consulta y cancelación de reservas propias.
+- Consulta de información de RTL, planes y datos de contacto.
+
+Las reservas del cliente se vinculan a una cookie de ese navegador durante 30 días. No hay registro de cuentas de clientes: borrar cookies o cambiar de navegador impide recuperar ese listado personal. El club conserva su historial.
+
+### Administración del club
+
+| Apartado | Función |
+| --- | --- |
+| Panel de control | Resumen de ocupación y tareas por revisar |
+| Reservas | Agenda por cancha, listado, historial y exportación CSV |
+| Mis canchas | Alta y edición de foto, tarifa, superficie, capacidad y habilitación |
+| Clientes | Directorio, búsqueda e historial por titular |
+| Pagos e ingresos | Turnos pagados y por cobrar, con filtros y registro manual de pago |
+| Reportes | Comparación mensual de reservas e importes |
+| Inventario | Productos, precios, existencias y filtros de stock |
+| Auditoría | Consulta y búsqueda de movimientos del complejo |
+| Mi suscripción | Plan, vigencia y herramientas habilitadas |
+
+Cada cuenta accede únicamente a los datos de su complejo. Las canchas físicas tienen disponibilidad independiente. El servidor valida horarios, tarifas y superposiciones antes de guardar una reserva.
+
+### Administración de RTL
+
+| Apartado | Función |
+| --- | --- |
+| Complejos | Directorio de clubes, cantidad de canchas y cuentas administradoras |
+| Suscripciones | Planes, contactos, vencimientos, renovaciones y borradores de recordatorios |
+| Cobros registrados | Historial de abonos recibidos, referencias y responsables |
+| Solicitudes de alta | Revisión de clubes interesados e inicio de su alta |
+| Actividad | Consulta de movimientos por complejo, acción o responsable |
+
+Las sesiones de RTL y de los clubes son independientes. Una cuenta de club no puede acceder al panel de RTL.
+
+### Planes y suscripciones
+
+| Plan | Herramientas |
+| --- | --- |
+| Básico | Agenda, canchas, clientes y control de cobros |
+| Pro | Gestión básica, reportes e inventario |
+| Elite | Todo lo de Pro y auditoría |
+
+Pro y Elite tienen abonos de referencia de $50.000 y $100.000 mensuales. RTL puede ajustar el importe de cada suscripción. Los complejos iniciales reciben Básico con 30 días de vigencia y abono en cero.
+
+Las funciones premium se validan también en el servidor. Una suscripción vencida pierde ese acceso; la suspensión explícita además oculta el complejo del catálogo y rechaza nuevas reservas. El historial y el acceso administrativo se conservan. Registrar un cobro reactiva el servicio hasta el vencimiento indicado.
+
+## Alcance actual
+
+- Los pagos son **registros manuales**: la aplicación no cobra dinero ni emite facturas fiscales.
+- Los recordatorios se guardan como **borradores**. Se puede abrir correo o WhatsApp con el mensaje preparado, pero una persona debe revisarlo y enviarlo.
+- Los importes de las reservas en reportes se agrupan por fecha del turno, no por fecha de recepción del dinero.
+- Los historiales comerciales de RTL muestran hasta 100 registros recientes; su actividad global muestra hasta 150 movimientos.
+- No incluye recuperación de contraseñas ni envíos automáticos de mensajes.
+- Las fotos se guardan en SQLite como imágenes comprimidas.
+
+## Estructura del proyecto
+
+```text
+assets/                 Imágenes de referencia y marca
+client/
+  index.html            Entrada de la aplicación React
+  src/
+    public/             Catálogo, reservas e información pública
+    admin/              Gestión de cada complejo
+    superadmin/         Gestión de RTL y suscripciones
+    shared/             Componentes y cliente HTTP compartidos
+    styles/             Estilos de los paneles y del sitio público
+server/                 API, autenticación, base de datos y arranque
+  test/                 Pruebas automatizadas y entorno de revisión temporal
+courts.js               Catálogo inicial utilizado al crear la base
+.env.example            Ejemplo de configuración sin credenciales
+```
 
 ## Pruebas
 
-```powershell
+```sh
 npm test
 ```
 
-Usan servidores locales y bases temporales aisladas. Una prueba adicional comprueba las entradas React, la transformación de todos los módulos JSX/CSS y que Vite no exponga los archivos del backend. Cubren permisos entre complejos, propiedad de reservas, precios, horarios superpuestos, solicitudes simultáneas, validaciones, cookies, persistencia, protección de archivos privados y límites de intentos de acceso. No ejecutan compilaciones ni modifican la base de la aplicación.
+Las pruebas cubren permisos entre complejos y roles, propiedad de reservas, tarifas, superposiciones, validaciones, persistencia, suscripciones, cobros sin duplicados, bloqueo de funciones y carga de módulos React. Utilizan bases aisladas y servidores temporales; no modifican la base local de la aplicación ni ejecutan un build.
 
-## Configuración y alcance
+## Configuración
 
-Variables: `HOST` (por defecto `127.0.0.1`), `PORT` (3000), `DB_PATH`, `COOKIE_SECURE` y `APP_ORIGIN`. `.env.example` documenta los valores; `.env` no se carga automáticamente. Si se crea un `.env`, iniciar con `node --env-file=.env server/start.cjs`.
+`.env.example` documenta las variables disponibles:
 
-La interfaz React está en `client/src/`: `public/` contiene catálogo, reservas, información institucional, planes y contacto; `admin/` contiene acceso, agenda, canchas, clientes y pagos; `shared/` contiene el cliente HTTP y componentes reutilizables. El panel de RTL se encuentra en `superadmin/`. Las vistas se eligen por las rutas `/`, `/admin/` y `/superadmin/`; los formularios y modales usan estado de React. Los scripts anteriores que manipulaban el DOM fueron retirados. `courts.js` se conserva únicamente como catálogo inicial para SQLite.
+| Variable | Uso |
+| --- | --- |
+| `HOST` | Dirección del servidor; por defecto `127.0.0.1` |
+| `PORT` | Puerto; por defecto `3000` |
+| `DB_PATH` | Ubicación alternativa de SQLite |
+| `COOKIE_SECURE` | Cookies solo por HTTPS cuando vale `true` |
+| `APP_ORIGIN` | Origen HTTPS exacto de la aplicación en producción |
 
-Este es un backend local funcional. Para alojarlo se necesita un proceso Node con disco persistente para SQLite. No se puede desplegar como un sitio puramente estático. Para una publicación futura, el script `npm run build` genera `client/dist/`; no se ejecutó ninguna compilación durante la migración, según las instrucciones del proyecto. El arranque en producción sirve esos archivos generados y no inicia Vite. Esa salida de producción debe generarse y verificarse antes de desplegar. En producción, definir `NODE_ENV=production`, `COOKIE_SECURE=true` y `APP_ORIGIN` con la URL HTTPS exacta, detrás de un proxy que termine HTTPS. No se confía automáticamente en cabeceras de IP enviadas por proxies; limitar intentos también en el proxy si se publica.
+Los archivos `.env` no se cargan automáticamente. Si se utiliza uno, iniciar con:
 
-Para respaldar los datos, detener el servidor y copiar el directorio `data/` completo a una ubicación protegida. No copiar solo el archivo principal mientras SQLite está escribiendo en WAL.
+```sh
+node --env-file=.env server/start.cjs
+```
 
-El registro de pagos es manual: no procesa dinero. No incluye recuperación de contraseña, facturación fiscal ni despliegue en la nube. Las altas de administradores por web y las solicitudes comerciales requieren el acceso exclusivo de RTL. Las fotos se guardan en la base de datos como imágenes comprimidas; para un volumen mayor corresponde usar almacenamiento de archivos dedicado.
+## Datos y despliegue
+
+`data/`, `node_modules/`, `.env` y `client/dist/` están excluidos del repositorio. Para respaldar SQLite, detener el servidor y copiar el directorio `data/` completo. No copiar solo el archivo principal mientras hay escrituras activas.
+
+El proyecto requiere un servidor Node y disco persistente para SQLite; no funciona como una publicación puramente estática en GitHub Pages. El modo de producción sirve los archivos de `client/dist/`, generados mediante el script `npm run build`. Antes de desplegar corresponde verificar esa salida y configurar `NODE_ENV=production`, HTTPS, `COOKIE_SECURE=true` y `APP_ORIGIN`.
