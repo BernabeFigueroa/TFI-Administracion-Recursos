@@ -1,0 +1,21 @@
+{
+  "name": "rtl-reserva-tu-lugar",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node server/start.cjs",
+    "dev": "node server/start.cjs",
+    "build": "vite build",
+    "test": "node --test server/test/*.test.cjs",
+    "admin:create": "node server/create-admin.cjs",
+    "superadmin:create": "node server/create-superadmin.cjs"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "vite": "8.3.4"
+  }
+}
