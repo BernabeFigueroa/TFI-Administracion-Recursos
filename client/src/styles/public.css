@@ -316,7 +316,7 @@ header {
 /* Grid Layout */
 .courts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 2.25rem;
   margin-top: 2rem;
 }
@@ -2412,3 +2412,92 @@ header {
 
 /* Estilos de los componentes públicos de React */
 .react-brand{border:0;background:none;cursor:pointer}.react-brand img{display:block;width:80px;height:80px;object-fit:contain}.react-public-dialog{max-width:560px;width:calc(100% - 30px);max-height:90dvh;overflow:auto;border:1px solid var(--shadow-dark);border-radius:24px;padding:28px;background:var(--bg-color);color:var(--text-primary);box-shadow:0 25px 90px #20372e33}.react-public-dialog::backdrop{background:#20372e66;backdrop-filter:blur(3px)}.dialog-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:20px}.icon-button{border:1px solid var(--shadow-dark);border-radius:7px;min-width:32px;height:32px;background:transparent;cursor:pointer;color:inherit}.react-public-dialog label{display:flex;flex-direction:column;gap:7px;font-size:.85rem;margin-bottom:16px}.react-public-dialog .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.booking-total{display:flex;justify-content:space-between;gap:10px;padding:18px 0;margin-block:10px;font-size:1rem;border-block:1px solid var(--shadow-dark)}.form-error{color:#a33d3d;font-size:.85rem;margin-block:14px}.slot-btn:disabled{opacity:.4;cursor:not-allowed}.ticket-code{font:600 .85rem monospace;overflow-wrap:anywhere;padding:18px;background:var(--accent-light);border-radius:10px}.react-public-dialog .confirm-booking-btn{margin-top:15px}.react-public-dialog .dialog-heading h2{font-size:1.3rem}.rtl-mini-footer a:focus-visible{outline:2px solid var(--accent-dark)}@media(max-width:480px){.react-public-dialog{padding:21px}.react-public-dialog .form-grid{grid-template-columns:1fr;gap:0}}
+
+
+/* Adaptación del catálogo, reservas y comprobantes a pantallas pequeñas. */
+.app-container, .app-container main, .view-container,
+.search-wrapper, .select-wrapper, .court-info, .court-price,
+.booking-item-card, .mini-footer-brand-text { min-width: 0; }
+.search-wrapper { min-width: 0; flex-basis: 250px; }
+.search-input, .location-select { min-width: 0; max-width: 100%; }
+.court-header { gap: 12px; align-items: flex-start; }
+.court-title { min-width: 0; overflow-wrap: anywhere; }
+.court-rating { flex-shrink: 0; }
+.court-footer { flex-wrap: wrap; gap: 14px; }
+.book-btn, .category-pill, .cancel-booking-btn, .drawer-link { min-height: 44px; }
+.book-btn { justify-content: center; }
+.bookings-list { grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr)); }
+.booking-item-header { flex-wrap: wrap; gap: 10px; }
+.booking-item-title { overflow-wrap: anywhere; }
+.booking-item-row { gap: 12px; align-items: baseline; }
+.booking-item-lbl { flex-shrink: 0; }
+.booking-item-val { min-width: 0; overflow-wrap: anywhere; text-align: right; }
+.mini-footer-container > *, .footer-contact-link > span { min-width: 0; }
+.side-drawer { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+.drawer-header { gap: 12px; }
+.drawer-header strong { min-width: 0; overflow-wrap: anywhere; }
+.close-drawer-btn { flex-shrink: 0; min-width: 44px; min-height: 44px; }
+.react-public-dialog {
+  inset: 0;
+  margin: auto;
+  width: min(560px, calc(100% - 24px));
+  max-width: calc(100% - 24px);
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  padding: 24px;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scroll-padding-block: 80px 24px;
+}
+body:has(.react-public-dialog[open]) { overflow: hidden; }
+.react-public-dialog .dialog-heading {
+  position: sticky;
+  top: -1px;
+  z-index: 2;
+  background: var(--bg-color);
+  padding-bottom: 12px;
+  align-items: flex-start;
+}
+.react-public-dialog .dialog-heading h2 { min-width: 0; overflow-wrap: anywhere; line-height: 1.4; }
+.react-public-dialog .icon-button { min-width: 44px; min-height: 44px; flex-shrink: 0; }
+.react-public-dialog form, .react-public-dialog label, .react-public-dialog .form-grid > * { min-width: 0; }
+.react-public-dialog input, .react-public-dialog select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 48px;
+  font-size: 16px;
+}
+.react-public-dialog .slots-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 76px), 1fr)); }
+.react-public-dialog .slot-btn { min-height: 48px; }
+.react-public-dialog .confirm-booking-btn, .react-public-dialog .go-book-btn { min-height: 48px; width: 100%; }
+.react-public-dialog .booking-total { flex-wrap: wrap; align-items: center; }
+.react-public-dialog p, .form-error { overflow-wrap: anywhere; }
+@media (max-width: 768px) {
+  .search-wrapper { flex-basis: auto; }
+  .search-input, .location-select { font-size: 16px; min-height: 48px; }
+  .react-brand img { width: 64px; height: 64px; }
+  .rtl-mini-footer .mini-footer-container { min-width: 0; }
+}
+@media (max-width: 480px) {
+  .app-container { padding: 16px 12px; }
+  .app-container > header { margin-bottom: 24px; }
+  .court-card { padding: 16px; }
+  .courts-grid { gap: 24px; }
+  .react-public-dialog { padding: 16px; border-radius: 18px; }
+  .react-public-dialog .form-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .react-public-dialog .neumorphic-input { padding-inline: 12px; }
+  .react-public-dialog .dialog-heading h2 { font-size: 1.1rem; }
+  .booking-item-card { padding: 16px; }
+  .booking-item-row { flex-wrap: wrap; gap: 4px 12px; }
+  .booking-item-val { flex: 1 1 140px; }
+}
+@media (max-width: 380px) {
+  .court-footer .book-btn { width: 100%; }
+  .booking-item-row { flex-direction: column; align-items: flex-start; }
+  .booking-item-val { flex-basis: auto; max-width: 100%; text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-container *, .react-public-dialog, .react-public-dialog * { transition: none; animation: none; scroll-behavior: auto; }
+}
